@@ -1,0 +1,123 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <script src="./letters.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        color: hsl(40, 100%, 50%);
+        font-family: "Montserrat", sans-serif;
+        font-optical-sizing: auto;
+        font-weight: 500;
+        font-style: normal;
+        font-size: 48px;
+        text-align: center;
+        overflow: hidden;
+      }
+
+      body {
+        background: black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      p {
+        position: absolute;
+        bottom: 50px;
+        max-width: 80vw;
+      }
+
+      #inter {
+        opacity: 0.5;
+      }
+    </style>
+  </head>
+
+  <body>
+    <p>
+      <span id="final"></span>
+      <span id="inter"></span>
+    </p>
+    <svg
+      id="mySvg"
+      width="80vh"
+      height="80vh"
+      viewBox="0 0 200 200"
+      fill="none"
+    >
+      <path fill="white"></path>
+    </svg>
+  </body>
+  <script>
+    let queue = [];
+    const path = document.querySelector(`path`);
+
+    const show = () => {
+      if (queue.length) {
+        path.setAttribute(`d`, alphabet[queue[0]]);
+        queue = queue.slice(1);
+      }
+      setTimeout(() => show(), 500);
+    };
+    show();
+
+    if ("webkitSpeechRecognition" in window) {
+      const recognition = new webkitSpeechRecognition();
+
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+      // recognition.lang = 'ru-RU';
+      // recognition.lang = 'uz';
+
+      recognition.onstart = function () {
+        console.log("Speech recognition started");
+      };
+
+      recognition.onerror = function (event) {
+        console.error("Speech recognition error:", event.error);
+      };
+
+      recognition.onresult = function (event) {
+        let interimTranscript = "";
+        let finalTranscript = "";
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        inter.innerHTML = interimTranscript;
+        if (finalTranscript.length) {
+          final.innerHTML = finalTranscript;
+          const letters = finalTranscript
+            .toLocaleLowerCase()
+            .replace(/[^a-zA-Z]/g, "")
+            .split(``);
+          queue = [...queue, ...letters];
+        }
+
+        console.log("Interim:", interimTranscript);
+        console.log("Final:", finalTranscript);
+      };
+
+      recognition.start();
+    } else {
+      console.error("Web Speech API not supported in this browser");
+    }
+  </script>
+</html>
